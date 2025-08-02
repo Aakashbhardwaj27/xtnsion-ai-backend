@@ -3,6 +3,10 @@
 This architecture outlines a modular, secure, and scalable system for handling voice and chat interactions in high-volume, multi-tenant healthcare environments like dental clinics. It supports shared memory, extensible tool integration, logging, observability, and compliance-aware design.
 
 ---
+## Architecture
+<img width="1365" height="833" alt="Xtnsion AI" src="https://github.com/user-attachments/assets/76fecfcc-27ca-449d-8b5a-8e07b151cb46" />
+
+---
 
 ## 🧠 Core Components
 
