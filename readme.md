@@ -1,63 +1,89 @@
-# 🦷 XtnsionAI Backend
+# Conversational Voice & Chat Architecture
 
-XtnsionAI is an intelligent AI assistant for dental clinics. This backend powers the AI logic, document retrieval, voice transcription, and conversation context management.
-
----
-
-## 🧠 Features
-
-- 💬 Conversational AI using OpenAI (GPT-4/GPT-4o)
-- 📚 Retrieval-Augmented Generation (RAG) with Pinecone + MongoDB
-- 🗣️ Voice-based interaction with transcript generation
-- ⚙️ REST API for frontend integration
-- 📥 PDF/document ingestion and embedding
-- ⚡ Redis for caching and queueing
-- ✨ Modular codebase with structured routes/controllers
+This architecture outlines a modular, secure, and scalable system for handling voice and chat interactions in high-volume, multi-tenant healthcare environments like dental clinics. It supports shared memory, extensible tool integration, logging, observability, and compliance-aware design.
 
 ---
 
-## 🏗️ Project Structure
+## 🧠 Core Components
 
-xtnsion-backend/
-├── src/
-│ ├── controllers/
-│ ├── routes/
-│ ├── services/
-│ ├── embeddings/
-│ ├── utils/
-│ ├── models/
-│ ├── config/
-│ └── index.ts / app.ts
-├── public/
-├── .env
-├── package.json
-└── README.md
+### 🗣️ Voice Pipeline (Blue Box)
+Handles voice interactions from microphone/WebRTC to intelligent response and voice output:
+
+- **Mic/WebRTC Input**: Captures user audio
+- **STT (Deepgram/Whisper)**: Converts audio to text
+- **Session Manager**: Tracks per-user session state
+- **Agent (NLU + Intent)**: Determines intent and next actions
+- **Tool Orchestration / Memory Lookup**: Handles memory/context and invokes tools
+- **TTS (PlayHT/ElevenLabs)**: Converts response text to audio
+- **Voice Output Stream**: Streams voice back to the user
+
+### 💬 Chat Pipeline (Green Box)
+Parallel chat interface for text-based interaction:
+
+- **Web/CLI Input**: Accepts user chat input
+- **Chat API**: Handles requests to the agent backend
+- **Session Manager**: Maintains session and user state
+- **Agent (NLU + Tools + Memory)**: Shared logic with voice agent
+- **Response Text**: Returns textual reply to user
+
+### 🧩 Shared Context Layer (Purple Box)
+Manages shared memory and retrieval components:
+
+- **Redis (Session State)**: Fast in-memory session store
+- **Vector DB (Weaviate/Qdrant/Pinecone)**: Stores embedded knowledge base for RAG
+- **Embeddings (OpenAI/HuggingFace)**: Converts user input to vector format for retrieval
+
+### 🛠️ Tool Use Logic (Orange Box)
+Integrates with backend services and routes intelligently:
+
+- **Routing (per clinic/tenant)**: Ensures correct clinic context
+- **Bookings API**: Mock or real endpoint for appointment handling
+- **FAQs API**: Retrieves answers for common patient questions
+
+### 📦 Session Manager (Gray Box)
+Central state and access controller:
+
+- **JWT/OAuth2**: Secures session authentication
+- **Redis/Memcached**: Stores active session data
+- **User-Tenant Mapping**: Maintains tenant boundaries
+- **NGINX + Node/Python**: Reverse proxy and API layer
+
+### 📊 Logging & Observability (Yellow Box)
+Critical for debugging, reliability, and compliance:
+
+- **ELK/Azure Monitor**: Log aggregation and search
+- **Prometheus/Grafana/Sentry**: Metrics and alerting
+- **Live Failure Dashboard**: Real-time visibility into issues
 
 ---
 
-## ⚙️ Setup Instructions
+## 🔁 Data & Log Flow
 
-### Clone the repo
+- Voice and chat inputs are **logged** on entry
+- All tools and agent actions generate **logs and metrics**
+- Failures in TTS/STT, tools, or memory are sent to **alerts and dashboards**
+- **Session events** (start, end, timeout) are tracked centrally
 
-```bash
-git clone https://github.com/your-org/xtnsion-backend.git
-cd xtnsion-backend
+---
 
-```
-### Setup Environment
+## 🔐 Security & Compliance Considerations
 
-```bash
-python -m venv venv
-source venv/bin/activate   # macOS/Linux
-venv\Scripts\activate      # Windows
+| Concern                   | Solution                                    |
+|--------------------------|---------------------------------------------|
+| Data in Transit          | TLS 1.2+ everywhere                         |
+| Data at Rest             | AES-256 (Redis, S3, DBs)                    |
+| Authentication           | OAuth 2.0 + JWT                            |
+| Authorization            | RBAC, tenant isolation                      |
+| PHI Logging              | Disabled or opt-in with redaction           |
+| Data Residency           | Regional DBs, geo-routing, pluggable config |
 
-pip install -r requirements.txt
+---
 
-docker-compose up -d  # setup pgvector
+## 📈 Scaling & Extensibility
 
-```
+- Shared agent logic enables **modality switching** (voice <-> chat)
+- Shared Redis/vector DB layer enables **context continuity**
+- Session manager enforces **isolation** between tenants
+- Can extend to other verticals (e.g., optometry) with new **tool plugins** and **FAQ datasets**
 
-### Run App
-```bash
-uvicorn app.main:app --reload  
-```
+---
