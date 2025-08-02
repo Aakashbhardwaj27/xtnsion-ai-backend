@@ -1,4 +1,4 @@
-# Conversational Voice & Chat Architecture
+# Xtnsion AI System Architecture
 
 This architecture outlines a modular, secure, and scalable system for handling voice and chat interactions in high-volume, multi-tenant healthcare environments like dental clinics. It supports shared memory, extensible tool integration, logging, observability, and compliance-aware design.
 
